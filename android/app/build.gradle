@@ -1,0 +1,52 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace = "com.ehtisab.nasbiyat"
+    compileSdk = rootProject.ext.has('compileSdkVersion') ? rootProject.ext.compileSdkVersion : 35
+    defaultConfig {
+        applicationId "com.ehtisab.nasbiyat"
+        minSdkVersion rootProject.ext.has('minSdkVersion') ? rootProject.ext.minSdkVersion : 24
+        targetSdkVersion rootProject.ext.has('targetSdkVersion') ? rootProject.ext.targetSdkVersion : 35
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:${rootProject.ext.has('androidxAppCompatVersion') ? rootProject.ext.androidxAppCompatVersion : '1.7.1'}"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:${rootProject.ext.has('androidxCoordinatorLayoutVersion') ? rootProject.ext.androidxCoordinatorLayoutVersion : '1.3.0'}"
+    implementation "androidx.core:core-splashscreen:${rootProject.ext.has('coreSplashScreenVersion') ? rootProject.ext.coreSplashScreenVersion : '1.0.1'}"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:${rootProject.ext.has('junitVersion') ? rootProject.ext.junitVersion : '4.13.2'}"
+    androidTestImplementation "androidx.test.ext:junit:${rootProject.ext.has('androidxJunitVersion') ? rootProject.ext.androidxJunitVersion : '1.3.0'}"
+    androidTestImplementation "androidx.test.espresso:espresso-core:${rootProject.ext.has('androidxEspressoCoreVersion') ? rootProject.ext.androidxEspressoCoreVersion : '3.7.0'}"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+if (file('google-services.json').exists()) {
+    apply plugin: 'com.google.gms.google-services'
+}
