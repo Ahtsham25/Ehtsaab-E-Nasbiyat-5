@@ -57,12 +57,13 @@ jobs:
           echo "d975f751698a77b662f1254ddbeed3901e1a16db" >> "$ANDROID_HOME/licenses/mips-android-sysimage-license"
           echo "601085b94cd77f6b54b86eebd7773a237e2ee46f" >> "$ANDROID_HOME/licenses/google-gdk-license"
 
+          # Install SDK platforms 36 and 35
           if command -v sdkmanager &> /dev/null; then
             yes | sdkmanager --licenses || true
-            sdkmanager "platforms;android-35" "build-tools;35.0.0" || true
+            sdkmanager "platforms;android-36" "platforms;android-35" "build-tools;35.0.0" || true
           elif [ -f "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
             yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
-            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" || true
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "platforms;android-35" "build-tools;35.0.0" || true
           fi
 
       - name: 📦 Install npm dependencies
@@ -78,13 +79,18 @@ jobs:
           # 1. Point Gradle to Android SDK location
           echo "sdk.dir=${ANDROID_HOME:-/usr/local/lib/android/sdk}" > android/local.properties
 
-          # 2. Clean settings.gradle to standard Capacitor configuration
+          # 2. Update variables.gradle to SDK 36 and compatible AndroidX Core
+          sed -i "s/compileSdkVersion = 35/compileSdkVersion = 36/g" android/variables.gradle || true
+          sed -i "s/androidxCoreVersion = '1.17.0'/androidxCoreVersion = '1.15.0'/g" android/variables.gradle || true
+          sed -i "s/cordovaAndroidVersion = '14.0.1'/cordovaAndroidVersion = '10.1.1'/g" android/variables.gradle || true
+
+          # 3. Clean settings.gradle to standard Capacitor configuration
           printf "include ':app'\napply from: 'capacitor.settings.gradle'\n" > android/settings.gradle
 
-          # 3. Remove unused cordova plugin references from app/build.gradle
+          # 4. Remove unused cordova plugin references from app/build.gradle
           sed -i "/capacitor-cordova-android-plugins/d" android/app/build.gradle || true
 
-          # 4. Ensure proguard rules exists
+          # 5. Ensure proguard rules exists
           touch android/app/proguard-rules.pro
 
       - name: 🔄 Sync Capacitor Android
@@ -145,7 +151,7 @@ jobs:
           echo "| **Package ID** | \`com.ehtisab.nasbiyat\` |" >> $GITHUB_STEP_SUMMARY
           echo "| **Java Version** | 21 (Temurin JDK) |" >> $GITHUB_STEP_SUMMARY
           echo "| **Gradle Version** | 8.14.3 |" >> $GITHUB_STEP_SUMMARY
-          echo "| **Android SDK** | 35 (Android 15) |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Android SDK** | 36 (Android 16 / 15) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "#### 📲 How to install:" >> $GITHUB_STEP_SUMMARY
           echo "1. Download the \`Ihtisab-e-Nasbiyat-APK\` zip from Artifacts below." >> $GITHUB_STEP_SUMMARY
