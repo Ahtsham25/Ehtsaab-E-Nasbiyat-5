@@ -75,13 +75,16 @@ jobs:
 
       - name: 🔧 Configure Android Settings and Dependencies
         run: |
-          # Clean settings.gradle to standard Capacitor configuration
+          # 1. Point Gradle to Android SDK location
+          echo "sdk.dir=${ANDROID_HOME:-/usr/local/lib/android/sdk}" > android/local.properties
+
+          # 2. Clean settings.gradle to standard Capacitor configuration
           printf "include ':app'\napply from: 'capacitor.settings.gradle'\n" > android/settings.gradle
 
-          # Remove unused cordova plugin references from app/build.gradle
+          # 3. Remove unused cordova plugin references from app/build.gradle
           sed -i "/capacitor-cordova-android-plugins/d" android/app/build.gradle || true
 
-          # Ensure proguard rules exists
+          # 4. Ensure proguard rules exists
           touch android/app/proguard-rules.pro
 
       - name: 🔄 Sync Capacitor Android
