@@ -79,18 +79,24 @@ jobs:
           # 1. Point Gradle to Android SDK location
           echo "sdk.dir=${ANDROID_HOME:-/usr/local/lib/android/sdk}" > android/local.properties
 
-          # 2. Update variables.gradle to SDK 36 and compatible AndroidX Core
-          sed -i "s/compileSdkVersion = 35/compileSdkVersion = 36/g" android/variables.gradle || true
-          sed -i "s/androidxCoreVersion = '1.17.0'/androidxCoreVersion = '1.15.0'/g" android/variables.gradle || true
-          sed -i "s/cordovaAndroidVersion = '14.0.1'/cordovaAndroidVersion = '10.1.1'/g" android/variables.gradle || true
+          # 2. Add Project Properties for Subprojects (Capacitor & Plugins)
+          printf "\ncordovaAndroidVersion=10.1.1\ncompileSdkVersion=36\ntargetSdkVersion=35\nandroidxCoreVersion=1.15.0\n" >> android/gradle.properties
 
-          # 3. Clean settings.gradle to standard Capacitor configuration
+          # 3. Patch Capacitor library default to 10.1.1
+          sed -i "s/14.0.1/10.1.1/g" node_modules/@capacitor/android/capacitor/build.gradle 2>/dev/null || true
+
+          # 4. Update variables.gradle to SDK 36 and compatible AndroidX Core
+          sed -i "s/compileSdkVersion = 35/compileSdkVersion = 36/g" android/variables.gradle 2>/dev/null || true
+          sed -i "s/androidxCoreVersion = '1.17.0'/androidxCoreVersion = '1.15.0'/g" android/variables.gradle 2>/dev/null || true
+          sed -i "s/cordovaAndroidVersion = '14.0.1'/cordovaAndroidVersion = '10.1.1'/g" android/variables.gradle 2>/dev/null || true
+
+          # 5. Clean settings.gradle to standard Capacitor configuration
           printf "include ':app'\napply from: 'capacitor.settings.gradle'\n" > android/settings.gradle
 
-          # 4. Remove unused cordova plugin references from app/build.gradle
-          sed -i "/capacitor-cordova-android-plugins/d" android/app/build.gradle || true
+          # 6. Remove unused cordova plugin references from app/build.gradle
+          sed -i "/capacitor-cordova-android-plugins/d" android/app/build.gradle 2>/dev/null || true
 
-          # 5. Ensure proguard rules exists
+          # 7. Ensure proguard rules exists
           touch android/app/proguard-rules.pro
 
       - name: 🔄 Sync Capacitor Android
@@ -105,11 +111,11 @@ jobs:
         run: |
           cd android
           echo "=== Building Debug APK ==="
-          ./gradlew assembleDebug --no-daemon --stacktrace -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=512m"
+          ./gradlew assembleDebug -PcordovaAndroidVersion=10.1.1 -PcompileSdkVersion=36 --no-daemon --stacktrace -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=512m"
 
           if [ "${{ github.event.inputs.build_variant }}" != "debug_only" ]; then
             echo "=== Building Release APK (Debug-signed for direct mobile installation) ==="
-            ./gradlew assembleRelease --no-daemon --stacktrace -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=512m" || echo "Release build skipped or completed with warnings"
+            ./gradlew assembleRelease -PcordovaAndroidVersion=10.1.1 -PcompileSdkVersion=36 --no-daemon --stacktrace -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=512m" || echo "Release build skipped or completed with warnings"
           fi
           cd ..
 
