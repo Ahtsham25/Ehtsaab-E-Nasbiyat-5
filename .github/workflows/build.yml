@@ -73,16 +73,13 @@ jobs:
         run: |
           npm run build
 
-      - name: 🔧 Configure Android Variables and Plugins
+      - name: 🔧 Configure Android Settings and Dependencies
         run: |
-          # Set cordovaAndroidVersion to 10.1.1 on Maven Central
-          sed -i "s/cordovaAndroidVersion = '14.0.1'/cordovaAndroidVersion = '10.1.1'/g" android/variables.gradle || true
-          sed -i "s/cordovaAndroidVersion : '14.0.1'/cordovaAndroidVersion : '10.1.1'/g" android/capacitor-cordova-android-plugins/build.gradle || true
-          sed -i "s/cordovaAndroidVersion : '14.0.1'/cordovaAndroidVersion : '10.1.1'/g" android/capacitor-cordova-android-plugins/cordova.variables.gradle || true
+          # Clean settings.gradle to standard Capacitor configuration
+          printf "include ':app'\napply from: 'capacitor.settings.gradle'\n" > android/settings.gradle
 
-          # Safely bypass unused empty cordova plugin subproject
-          sed -i "s/implementation project(':capacitor-cordova-android-plugins')/\/\/ implementation project(':capacitor-cordova-android-plugins')/g" android/app/build.gradle || true
-          sed -i "s/include ':capacitor-cordova-android-plugins'/\/\/ include ':capacitor-cordova-android-plugins'/g" android/settings.gradle || true
+          # Remove unused cordova plugin references from app/build.gradle
+          sed -i "/capacitor-cordova-android-plugins/d" android/app/build.gradle || true
 
           # Ensure proguard rules exists
           touch android/app/proguard-rules.pro
